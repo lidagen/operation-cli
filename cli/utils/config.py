@@ -25,6 +25,7 @@ def append_config_item(new_data_pair: dict):
 def is_valid() -> bool:
     required_keys = [
         "env",
+        "salt",
         "db_host",
         "db_username",
         "db_password"

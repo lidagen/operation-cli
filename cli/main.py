@@ -5,7 +5,8 @@ from rich import print, box
 from .utils import config
 from .utils.env_enums import Env
 from rich.table import Table
-from .utils.database_helper import  DBInstanceMapping, __fetch
+from .utils.database_helper import DBInstanceMapping, __fetch
+from .utils import jwt_utils
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -26,6 +27,7 @@ def callback(ctx: typer.Context):
 
 @app.command()
 def configure(
+        salt: str = typer.Option(..., prompt=True),  # 6位
         db_username: str = typer.Option(..., prompt=True),
         db_password: str = typer.Option(..., prompt=True, hide_input=True, confirmation_prompt=True),
 
@@ -34,6 +36,7 @@ def configure(
         "db_username": db_username,
         "db_password": db_password,
         "env": "LOCAL",
+        "salt": salt,
         "db_host": "127.0.0.1",
     }
     config.init(config_content)
@@ -54,9 +57,9 @@ def env():
     _host = '127.0.0.1'
     config.append_config_item({'db_host': _host})
     if env_name == Env.REMOTE.value:
-        _host = typer.prompt("input remote host", default=_host, hide_input=True)
-        remote_user = typer.prompt("input remote ssh user", hide_input=True)
-        remote_password = typer.prompt("input remote ssh password", hide_input=True)
+        _host = typer.prompt("input remote server host", default=_host, hide_input=True)
+        remote_user = typer.prompt("input remote server user", hide_input=True)
+        remote_password = typer.prompt("input remote server password", hide_input=True)
         config.append_config_item({'db_host': _host})
         config.append_config_item({'remote_host': _host})
         config.append_config_item({'remote_user': remote_user})
@@ -70,7 +73,7 @@ def get_account():
     table = Table('TYPE', 'NAME', 'PASSWORD')
     result = __fetch(f"select * from certi where type = '{type}';", get_instance())
     for certi in result:
-        table.add_row(certi[1], certi[2], certi[3])
+        table.add_row(certi[1], certi[2], jwt_utils.decode(certi[3]))
     print(table)
 
 
