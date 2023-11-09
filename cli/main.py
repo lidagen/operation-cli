@@ -61,7 +61,7 @@ def env():
 
 @app.command()
 def get_account():
-    type = typer.prompt("select certi by type")
+    type = typer.prompt("select certi by type").upper()
     table = Table('TYPE', 'NAME', 'PASSWORD')
     result = __fetch(f"select * from certi where type = '{type}';", get_instance())
     for certi in result:
@@ -70,13 +70,7 @@ def get_account():
 
 
 def get_instance():
-    env = config.read_config().get("env")
-    if 'LOCAL' == env:
-        instance = db_instance_list.LOCAL
-    else:
-        instance = db_instance_list.REMOTE
-
-    return instance
+    return db_instance_list.LOCAL if config.read_config().get("env") == 'LOCAL' else db_instance_list.REMOTE
 
 
 @app.command()
