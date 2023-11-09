@@ -1,5 +1,6 @@
 from . import config
 from .env_enums import Env
+import pymysql
 
 
 class DBInstance:
@@ -7,7 +8,7 @@ class DBInstance:
         self.host = host
         self.db = db
         self.username = config.read_config().get('db_username')
-        self.username = config.read_config().get('db_password')
+        self.password = config.read_config().get('db_password')
 
     def get_host(self):
         return self.host
@@ -23,5 +24,12 @@ class DBInstanceMapping:
 
 
 def __fetch(sql: str, db_instance: DBInstance):
-    print(sql)
+    conn = pymysql.connect(host=db_instance.get_host(), port=3306, user=db_instance.username,
+                           password=db_instance.password, db=db_instance.get_db())
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
 
+    cursor.close()
+    conn.close()
+    return result

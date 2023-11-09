@@ -17,7 +17,7 @@ db_instance_list: DBInstanceMapping = DBInstanceMapping()
 @app.callback()
 def callback(ctx: typer.Context):
     """
-    Awesome Portal Gun
+    config is not null
     """
     if ctx.invoked_subcommand != 'configure' and config.is_valid() is False:
         print('Please run `opscli configure` to configure the essential information.')
@@ -51,19 +51,39 @@ def env():
     env_index = typer.prompt('Select apply environment', type=click.Choice(env_mapping.keys()), show_choices=False)
     env_name = env_mapping.get(env_index, Env.REMOTE).value
     config.append_config_item({'env': env_name})
+    _host = '127.0.0.1'
+    config.append_config_item({'db_host': _host})
     if env_name == Env.REMOTE.value:
-        remote_host = typer.prompt("input remote host", default='127.0.0.1', hide_input=True)
-        config.append_config_item({'db_host': remote_host})
-        print(f"😇 Successfully applied new environment: {env_name},host:{remote_host}")
+        _host = typer.prompt("input remote host", default=_host, hide_input=True)
+        config.append_config_item({'db_host': _host})
+    print(f"😇 Successfully applied new environment: {env_name},host:{_host}")
 
 
 @app.command()
 def get_account():
     type = typer.prompt("select certi by type")
+    table = Table('TYPE', 'NAME', 'PASSWORD')
+    result = __fetch(f"select * from certi where type = '{type}';", get_instance())
+    for certi in result:
+        table.add_row(certi[1], certi[2], certi[3])
+    print(table)
+
+
+def get_instance():
     env = config.read_config().get("env")
     if 'LOCAL' == env:
         instance = db_instance_list.LOCAL
     else:
         instance = db_instance_list.REMOTE
 
-    __fetch(f"select * from certi where type = '{type}';", instance)
+    return instance
+
+
+@app.command()
+def account_type():
+    result = __fetch(f"select type from certi", get_instance())
+    print(result)
+    table = Table('TYPE')
+    for type in result:
+        table.add_row(type[0])
+    print(table)
