@@ -5,7 +5,7 @@ from rich import print, box
 from .utils import config
 from .utils.env_enums import Env
 from rich.table import Table
-from .utils.database_helper import DBInstance, DBInstanceMapping, __fetch
+from .utils.database_helper import  DBInstanceMapping, __fetch
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -55,7 +55,12 @@ def env():
     config.append_config_item({'db_host': _host})
     if env_name == Env.REMOTE.value:
         _host = typer.prompt("input remote host", default=_host, hide_input=True)
+        remote_user = typer.prompt("input remote ssh user", hide_input=True)
+        remote_password = typer.prompt("input remote ssh password", hide_input=True)
         config.append_config_item({'db_host': _host})
+        config.append_config_item({'remote_host': _host})
+        config.append_config_item({'remote_user': remote_user})
+        config.append_config_item({'remote_password': remote_password})
     print(f"😇 Successfully applied new environment: {env_name},host:{_host}")
 
 

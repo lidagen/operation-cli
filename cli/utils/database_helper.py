@@ -1,6 +1,7 @@
 from . import config
 from .env_enums import Env
 import pymysql
+from . import sshtunnel_util
 
 
 class DBInstance:
@@ -24,12 +25,18 @@ class DBInstanceMapping:
 
 
 def __fetch(sql: str, db_instance: DBInstance):
-    conn = pymysql.connect(host=db_instance.get_host(), port=3306, user=db_instance.username,
-                           password=db_instance.password, db=db_instance.get_db())
-    cursor = conn.cursor()
-    cursor.execute(sql)
-    result = cursor.fetchall()
+    if db_instance.get_host() != '127.0.0.1':
+        print("remote")
+        return sshtunnel_util.query_mysql(db_user=db_instance.username, db_password=db_instance.password,
+                                   db_name=db_instance.get_db(), sql=sql)
+    else:
+        print("local")
+        conn = pymysql.connect(host=db_instance.get_host(), port=3306, user=db_instance.username,
+                               password=db_instance.password, db=db_instance.get_db())
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        result = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
-    return result
+        cursor.close()
+        conn.close()
+        return result
