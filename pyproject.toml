@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "operation-cli"
+version = "0.1.0"
+description = ""
+authors = ["wangs <wal365@126.com>"]
+readme = "README.md"
+packages = [{include = "cli"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = {extras = ["all"], version = "^0.9.0"}
+requests = "^2.31.0"
+pymysql = "^1.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+opscli="cli.main:app"
+
+
+[[tool.poetry.source]]
+name="tsinghua-pypi"
+url="https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
