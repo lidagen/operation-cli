@@ -1,6 +1,13 @@
 # This is a sample Python script.
+import os
+
 import click
 import typer
+from langchain.chains import RetrievalQA
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.prompts import PromptTemplate
+from langchain.vectorstores.chroma import Chroma
+from openai import OpenAI
 from rich import print, box
 from .utils import config
 from .utils.env_enums import Env
@@ -75,6 +82,46 @@ def get_account():
     for certi in result:
         table.add_row(certi[1], certi[2], jwt_utils.decode(certi[3]))
     print(table)
+
+
+@app.command()
+def config_open_ai_key():
+    open_ai_key = typer.prompt('Open AI Token [https://platform.openai.com/account/api-keys]')
+    config.append_config_item({'open_ai_key': open_ai_key})
+    print('😎 Welcome to the world of AI.')
+
+
+@app.command()
+def openai():
+    word = typer.prompt("请输入需要查询的词汇")
+    openai_api_key = config.read_config().get('open_ai_key', None)
+    vectordb_path = os.path.join(os.path.dirname(__file__), '.', 'resources', 'chroma_db')
+    assert openai_api_key, 'Please execute `opscli config-open-ai-key to finish configure.`'
+    assert vectordb_path and os.path.exists(vectordb_path), 'Missing vector-db directory.'
+
+    embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)
+    llm = OpenAI(temperature=0.9, openai_api_key=openai_api_key)
+    vectordb = Chroma(persist_directory=vectordb_path, embedding_function=embedding)
+
+    retriever = vectordb.as_retriever(search_kwargs={"k": 4}, search_type='mmr')
+    qa = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever)
+    prompt_template = '''
+        You are a business system dictionary query chatbot, please use the context information for word explanation, the 
+        context is comma-separated text, the source format is CSV format, the column header of the table is (abbreviation, 
+        Chinese name, type, related squad, description, remarks), please use the description column to explain as much as 
+        possible. If you don't know the answer, say you don't know, don't try to make up the answer, please output the 
+        answer in Chinese.
+
+        {context}
+
+        Question: {question}
+        Helpful Answer:
+        '''
+    custom_prompt = PromptTemplate(template=prompt_template, input_variables=["context", "question"])
+
+    qa.combine_documents_chain.llm_chain.prompt = custom_prompt
+    answer = qa.run(word)
+    print(f'{answer}')
 
 
 def get_instance():
