@@ -20,7 +20,6 @@ from .utils import jwt_utils
 app = typer.Typer(rich_markup_mode="rich")
 
 
-
 @app.callback()
 def callback(ctx: typer.Context):
     """
@@ -66,7 +65,18 @@ def env():
         _host = typer.prompt("input remote server host", default=_host, hide_input=True)
         remote_user = typer.prompt("input remote server user", hide_input=True)
         remote_password = typer.prompt("input remote server password", hide_input=True)
+        remote_mapping = {
+            '1': "CLOSE",
+            '2': "OPEN"
+        }
+        print('select open ssh_tunnel:')
+        for number in remote_mapping.keys():
+            print(f'[{number}] -> {remote_mapping[number]}')
+        ssh_tunnel = typer.prompt('Select apply ssh_tunnel ', type=click.Choice(remote_mapping.keys()), show_choices=False)
+        ssh_tunnel_val = remote_mapping.get(ssh_tunnel, "OPEN")
+
         config.append_config_item({'db_host': _host})
+        config.append_config_item({'ssh_tunnel': ssh_tunnel_val})
         config.append_config_item({'remote_host': _host})
         config.append_config_item({'remote_user': remote_user})
         config.append_config_item({'remote_password': remote_password})
@@ -125,7 +135,6 @@ def openai():
 
 def get_instance():
     db_instance_list: DBInstanceMapping = DBInstanceMapping()
-
     return db_instance_list.LOCAL if config.read_config().get("env") == 'LOCAL' else db_instance_list.REMOTE
 
 
