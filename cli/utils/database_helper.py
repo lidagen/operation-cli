@@ -20,7 +20,8 @@ class DBInstance:
 
 class DBInstanceMapping:
     def __init__(self):
-        self.REMOTE = DBInstance(host=config.read_config().get("db_host"), db='certificate')
+
+        self.REMOTE = DBInstance(host=config.read_config().get("db_host", '127.0.0.1'), db='certificate')
         self.LOCAL = DBInstance(host='127.0.0.1', db='certificate')
 
 

@@ -19,7 +19,6 @@ from .utils import jwt_utils
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 app = typer.Typer(rich_markup_mode="rich")
 
-db_instance_list: DBInstanceMapping = DBInstanceMapping()
 
 
 @app.callback()
@@ -125,6 +124,8 @@ def openai():
 
 
 def get_instance():
+    db_instance_list: DBInstanceMapping = DBInstanceMapping()
+
     return db_instance_list.LOCAL if config.read_config().get("env") == 'LOCAL' else db_instance_list.REMOTE
 
 
