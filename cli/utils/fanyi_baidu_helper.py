@@ -15,8 +15,7 @@ appid = '20231130001896362'
 appkey = 'N9ekUoNYXCzh_NLB81ar'
 
 # For list of language codes, please refer to `https://api.fanyi.baidu.com/doc/21`
-from_lang = 'en'
-to_lang = 'zh'
+
 
 endpoint = 'http://api.fanyi.baidu.com'
 path = '/api/trans/vip/translate'
@@ -26,13 +25,38 @@ salt = random.randint(32768, 65536)
 # Build request
 headers = {'Content-Type': 'application/x-www-form-urlencoded'}
 
+import re
+
+
+def has_chinese_character(text):
+    pattern = re.compile(r'[\u4e00-\u9fa5]')
+    result = pattern.search(text)
+    if result:
+        return True
+    else:
+        return False
+
+
+def has_english_character(text):
+    pattern = re.compile(r'[a-zA-Z]')
+    result = pattern.search(text)
+    if result:
+        return True
+    else:
+        return False
+
 
 # Generate salt and sign
 def make_md5(s, encoding='utf-8'):
     return md5(s.encode(encoding)).hexdigest()
 
 
-def transfer(query: str):
+def translate(query: str):
+    flag = has_chinese_character(query)
+
+    from_lang = 'zh' if flag else "en"
+    to_lang = 'en' if flag else "zh"
+
     sign = make_md5(appid + query + str(salt) + appkey)
 
     # Send request

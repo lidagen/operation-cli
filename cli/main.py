@@ -167,8 +167,9 @@ def account_type():
 @app.command()
 def fanyi(
         query: str = typer.Option(..., prompt=True),
+
 ):
-    result = fanyi_baidu_helper.transfer(query)
+    result = fanyi_baidu_helper.translate(query)
     for re in result:
         print(re)
 
