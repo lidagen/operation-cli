@@ -23,7 +23,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-opscli="cli.main:app"
+cli="cli.main:app"
 
 
 [[tool.poetry.source]]
