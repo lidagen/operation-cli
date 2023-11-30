@@ -8,12 +8,14 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.chroma import Chroma
 from openai import OpenAI
+import openai
 from rich import print, box
 from .utils import config
 from .utils.env_enums import Env
 from rich.table import Table
 from .utils.database_helper import DBInstanceMapping, __fetch
 from .utils import jwt_utils
+from .utils import fanyi_baidu_helper
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -72,7 +74,8 @@ def env():
         print('select open ssh_tunnel:')
         for number in remote_mapping.keys():
             print(f'[{number}] -> {remote_mapping[number]}')
-        ssh_tunnel = typer.prompt('Select apply ssh_tunnel ', type=click.Choice(remote_mapping.keys()), show_choices=False)
+        ssh_tunnel = typer.prompt('Select apply ssh_tunnel ', type=click.Choice(remote_mapping.keys()),
+                                  show_choices=False)
         ssh_tunnel_val = remote_mapping.get(ssh_tunnel, "OPEN")
 
         config.append_config_item({'db_host': _host})
@@ -102,6 +105,19 @@ def config_open_ai_key():
 
 @app.command()
 def openai():
+    prompt = typer.prompt("请输入需要查询的词汇")
+    openai.api_key = config.read_config().get('open_ai_key', None)
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=1,  # this is the degree of randomness of the model's output
+    )
+    print(response.choices[0].message["content"])
+
+
+@app.command()
+def o_openai():
     word = typer.prompt("请输入需要查询的词汇")
     openai_api_key = config.read_config().get('open_ai_key', None)
     vectordb_path = os.path.join(os.path.dirname(__file__), '.', 'resources', 'chroma_db')
@@ -146,3 +162,13 @@ def account_type():
     for type in result:
         table.add_row(type[0])
     print(table)
+
+
+@app.command()
+def fanyi(
+        query: str = typer.Option(..., prompt=True),
+):
+    result = fanyi_baidu_helper.transfer(query)
+    for re in result:
+        print(re)
+
