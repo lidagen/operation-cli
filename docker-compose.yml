@@ -1,0 +1,26 @@
+# https://docs.docker.com/compose/compose-file/compose-file-v3/ DOCKER ENGINE版本对应
+version: "3.8"
+services:
+  mysql:
+    image: mysql:8.0 #代表使用的哪个镜像
+    ports:
+      - 3306:3306 #宿主机于容器的端口映射
+    volumes:
+      - /root/mysql/conf:/etc/mysql/conf.d
+      - /root/mysql/log:/logs
+      - /root/mysqldata/opscli:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: abc@1234
+    restart: always
+
+
+  ops:
+    build: ./
+    links:
+      - mysql:mysql
+    stdin_open: true #docker -d
+    tty: true #dcoker -it
+    volumes:
+      - /root/.opscli/:/root/.opscli/config.json
+    restart: always
+

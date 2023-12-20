@@ -20,14 +20,16 @@ class DBInstance:
 
 class DBInstanceMapping:
     def __init__(self):
-        self.REMOTE = DBInstance(host=config.read_config().get("db_host"), db='certificate')
+        self.REMOTE = DBInstance(host=config.read_config().get("db_host", '127.0.0.1'), db='certificate')
         self.LOCAL = DBInstance(host='127.0.0.1', db='certificate')
 
 
 def __fetch(sql: str, db_instance: DBInstance):
-    if db_instance.get_host() != '127.0.0.1':
+    ssh_tunnel = config.read_config().get("ssh_tunnel", "OPEN")
+
+    if db_instance.get_host() != '127.0.0.1' and ssh_tunnel == 'OPEN':
         return sshtunnel_util.query_mysql(db_user=db_instance.username, db_password=db_instance.password,
-                                   db_name=db_instance.get_db(), sql=sql)
+                                          db_name=db_instance.get_db(), sql=sql)
     else:
         conn = pymysql.connect(host=db_instance.get_host(), port=3306, user=db_instance.username,
                                password=db_instance.password, db=db_instance.get_db())

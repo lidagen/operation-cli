@@ -8,18 +8,18 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.prompts import PromptTemplate
 from langchain.vectorstores.chroma import Chroma
 from openai import OpenAI
+import openai
 from rich import print, box
 from .utils import config
 from .utils.env_enums import Env
 from rich.table import Table
 from .utils.database_helper import DBInstanceMapping, __fetch
 from .utils import jwt_utils
+from .utils import fanyi_baidu_helper
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 app = typer.Typer(rich_markup_mode="rich")
-
-db_instance_list: DBInstanceMapping = DBInstanceMapping()
 
 
 @app.callback()
@@ -67,7 +67,19 @@ def env():
         _host = typer.prompt("input remote server host", default=_host, hide_input=True)
         remote_user = typer.prompt("input remote server user", hide_input=True)
         remote_password = typer.prompt("input remote server password", hide_input=True)
+        remote_mapping = {
+            '1': "CLOSE",
+            '2': "OPEN"
+        }
+        print('select open ssh_tunnel:')
+        for number in remote_mapping.keys():
+            print(f'[{number}] -> {remote_mapping[number]}')
+        ssh_tunnel = typer.prompt('Select apply ssh_tunnel ', type=click.Choice(remote_mapping.keys()),
+                                  show_choices=False)
+        ssh_tunnel_val = remote_mapping.get(ssh_tunnel, "OPEN")
+
         config.append_config_item({'db_host': _host})
+        config.append_config_item({'ssh_tunnel': ssh_tunnel_val})
         config.append_config_item({'remote_host': _host})
         config.append_config_item({'remote_user': remote_user})
         config.append_config_item({'remote_password': remote_password})
@@ -93,6 +105,19 @@ def config_open_ai_key():
 
 @app.command()
 def openai():
+    prompt = typer.prompt("请输入需要查询的词汇")
+    openai.api_key = config.read_config().get('open_ai_key', None)
+    messages = [{"role": "user", "content": prompt}]
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=messages,
+        temperature=1,  # this is the degree of randomness of the model's output
+    )
+    print(response.choices[0].message["content"])
+
+
+@app.command()
+def o_openai():
     word = typer.prompt("请输入需要查询的词汇")
     openai_api_key = config.read_config().get('open_ai_key', None)
     vectordb_path = os.path.join(os.path.dirname(__file__), '.', 'resources', 'chroma_db')
@@ -125,6 +150,7 @@ def openai():
 
 
 def get_instance():
+    db_instance_list: DBInstanceMapping = DBInstanceMapping()
     return db_instance_list.LOCAL if config.read_config().get("env") == 'LOCAL' else db_instance_list.REMOTE
 
 
@@ -136,3 +162,14 @@ def account_type():
     for type in result:
         table.add_row(type[0])
     print(table)
+
+
+@app.command()
+def fanyi(
+        query: str = typer.Option(..., prompt=True),
+
+):
+    result = fanyi_baidu_helper.translate(query)
+    for re in result:
+        print(re)
+
