@@ -173,3 +173,16 @@ def fanyi(
     for re in result:
         print(re)
 
+
+@app.command()
+def decode(
+        val: str = typer.Option(..., prompt=True),
+):
+    print(jwt_utils.decode(val))
+
+
+@app.command()
+def enconde(
+        val: str = typer.Option(..., prompt=True),
+):
+    print(jwt_utils.enconde(val))
