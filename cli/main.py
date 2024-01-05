@@ -182,7 +182,7 @@ def decode(
 
 
 @app.command()
-def enconde(
+def encode(
         val: str = typer.Option(..., prompt=True),
 ):
     print(jwt_utils.enconde(val))
