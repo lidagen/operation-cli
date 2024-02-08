@@ -157,7 +157,6 @@ def get_instance():
 @app.command()
 def account_type():
     result = __fetch(f"select type from certi", get_instance())
-    print(result)
     table = Table('TYPE')
     for type in result:
         table.add_row(type[0])
