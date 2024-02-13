@@ -16,6 +16,7 @@ from rich.table import Table
 from .utils.database_helper import DBInstanceMapping, __fetch
 from .utils import jwt_utils
 from .utils import fanyi_baidu_helper
+from .utils import gemini_uitl
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -114,6 +115,14 @@ def openai():
         temperature=1,  # this is the degree of randomness of the model's output
     )
     print(response.choices[0].message["content"])
+
+
+@app.command()
+def gemini():
+    prompt = typer.prompt("请输入")
+    gemini_key = config.read_config().get('geminiKey', None)
+    resp = gemini_uitl.genai_no_stream(gemini_key, prompt)
+    print(resp.text)
 
 
 @app.command()
