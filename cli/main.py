@@ -118,16 +118,20 @@ def openai():
 
 
 @app.command()
-def gemini(output: str = typer.Option(..., prompt=True)):
-    prompt = typer.prompt("请输入")
+def gemini(
+        query: str = typer.Option(..., prompt=True),
+        flag: str = typer.Option("N",
+                                 help="'--flag=y' can write the answer to a local file .")
+):
+
     gemini_key = config.read_config().get('geminiKey', None)
-    resp = gemini_uitl.genai_no_stream(gemini_key, prompt)
+    resp = gemini_uitl.genai_no_stream(gemini_key, query)
     # 写入文本
     current_path = os.getcwd()
 
-    if output == 'Y':
+    if flag.upper() == 'Y':
 
-        with open(f'{current_path}/{prompt}.txt', 'w') as f:
+        with open(f'{current_path}/{query}.txt', 'w') as f:
             # 将当前路径写入文本文件
             f.write(resp.text)
         # 关闭文本文件
