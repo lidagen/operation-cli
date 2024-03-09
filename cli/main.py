@@ -11,6 +11,7 @@ from .utils.database_helper import DBInstanceMapping, __fetch
 from .utils import jwt_utils
 from .utils import fanyi_baidu_helper
 from .utils import gemini_uitl
+from .utils import sqlite3_util
 from volcengine.maas import MaasService, MaasException, ChatRole
 
 # Press Shift+F10 to execute it or replace it with your code.
@@ -83,14 +84,14 @@ def env():
 
 
 @app.command()
-def get_account():
+def getAccount():
     type = typer.prompt("select certi by type").upper()
-    table = Table('TYPE', 'NAME', 'PASSWORD')
-    result = __fetch(f"select * from certi where type = '{type}';", get_instance())
+    table = Table('TYPE', 'NAME', 'PASSWORD', 'REMARK')
+    result = sqlite3_util.query(type)
+    # result = __fetch(f"select * from certi where type = '{type}';", get_instance())
     for certi in result:
-        table.add_row(certi[1], certi[2], jwt_utils.decode(certi[3]))
+        table.add_row(certi[0], certi[1], jwt_utils.decode(certi[2]),certi[3])
     print(table)
-
 
 
 @app.command()
@@ -162,7 +163,8 @@ def get_instance():
 
 @app.command()
 def accounts():
-    result = __fetch(f"select type from certi", get_instance())
+    #result = __fetch(f"select type from certi", get_instance())
+    result = sqlite3_util.fetch_all()
     table = Table('TYPE')
     for type in result:
         table.add_row(type[0])
