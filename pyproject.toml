@@ -29,7 +29,3 @@ build-backend = "poetry.core.masonry.api"
 cli="cli.main:app"
 
 
-[[tool.poetry.source]]
-name="tsinghua-pypi"
-url="https://pypi.tuna.tsinghua.edu.cn/simple"
-default = true
