@@ -1,18 +1,18 @@
 # This is a sample Python script.
-import os
-
 import click
 import typer
-from rich import print, box
-from .utils import config
-from .utils.env_enums import Env
+from rich import print
 from rich.table import Table
-from .utils.database_helper import DBInstanceMapping, __fetch
-from .utils import jwt_utils
+
+from .utils import config
 from .utils import fanyi_baidu_helper
-from .utils import gemini_uitl
+from .utils import jwt_utils
 from .utils import sqlite3_util
-from volcengine.maas import MaasService, MaasException, ChatRole
+from .utils.ai_enums import Ai
+from .utils.database_helper import DBInstanceMapping
+from .utils.env_enums import Env
+from .utils import gemini_uitl
+from .utils import deepseek
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -25,7 +25,7 @@ def callback(ctx: typer.Context):
     config is not null
     """
     if ctx.invoked_subcommand != 'configure' and config.is_valid() is False:
-        print('Please run `opscli configure` to configure the essential information.')
+        print('Please run `cli configure` to configure the essential information.')
         raise typer.Exit()
 
 
@@ -44,6 +44,28 @@ def configure(
         "db_host": "127.0.0.1",
     }
     config.init(config_content)
+
+
+@app.command()
+def ai():
+    env_mapping = {
+        '1': Ai.DEEP_SEEK,
+        '2': Ai.GEMINI
+    }
+    for number in env_mapping.keys():
+        print(f'[{number}] -> {env_mapping[number].value}')
+    ai_index = typer.prompt('Select ai', type=click.Choice(env_mapping.keys()), show_choices=False)
+    ai_enum = env_mapping.get(ai_index, Ai.DEEP_SEEK)
+    query = typer.prompt("input query")
+    resp = ""
+    if ai_enum == Ai.DEEP_SEEK:
+        deepseek_key = config.read_config().get('deepseekKey', None)
+        resp = deepseek.genai_no_stream(deepseek_key, query)
+        print(resp)
+    elif ai_enum == Ai.GEMINI:
+        gemini_key = config.read_config().get('geminiKey', None)
+        resp = gemini_uitl.genai_no_stream(gemini_key, query)
+        print(resp.text)
 
 
 @app.command()
@@ -90,70 +112,8 @@ def getAccount():
     result = sqlite3_util.query(type)
     # result = __fetch(f"select * from certi where type = '{type}';", get_instance())
     for certi in result:
-        table.add_row(certi[0], certi[1], jwt_utils.decode(certi[2]),certi[3])
+        table.add_row(certi[0], certi[1], jwt_utils.decode(certi[2]), certi[3])
     print(table)
-
-
-@app.command()
-def yunque(
-        query: str = typer.Option(..., prompt=True),
-        flag: str = typer.Option("N",
-                                 help="'--flag=y' can write the answer to a local file .")
-):
-    maas = MaasService('maas-api.ml-platform-cn-beijing.volces.com', 'cn-beijing')
-    skylark_key = config.read_config().get('skylarkKey', None)
-    skylark_secret_key = config.read_config().get('skylarkSecretKey', None)
-    maas.set_ak(skylark_key)
-    maas.set_sk(skylark_secret_key)
-    req = {
-        "model": {
-            "name": "skylark-chat",
-        },
-        "parameters": {
-            "max_new_tokens": 1000,  # 输出文本的最大tokens限制
-            "temperature": 0.7,  # 用于控制生成文本的随机性和创造性，Temperature值越大随机性越大，取值范围0~1
-            "top_p": 0.9,  # 用于控制输出tokens的多样性，TopP值越大输出的tokens类型越丰富，取值范围0~1
-            "top_k": 0,  # 选择预测值最大的k个token进行采样，取值范围0-1000，0表示不生效
-        },
-        "messages": [
-            {
-                "role": ChatRole.USER,
-                "content": query
-            },
-        ]
-    }
-    resp = maas.chat(req)
-    print(resp.choice.message.content)
-    current_path = os.getcwd()
-    if flag.upper() == 'Y':
-        with open(f'{current_path}/{query}.txt', 'w') as f:
-            # 将当前路径写入文本文件
-            f.write(resp.choice.message.content)
-        # 关闭文本文件
-        f.close()
-        print(f"{current_path} write end!")
-
-
-@app.command()
-def gemini(
-        query: str = typer.Option(..., prompt=True),
-        flag: str = typer.Option("N",
-                                 help="'--flag=y' can write the answer to a local file .")
-):
-    gemini_key = config.read_config().get('geminiKey', None)
-    resp = gemini_uitl.genai_no_stream(gemini_key, query)
-    # 写入文本
-    current_path = os.getcwd()
-
-    if flag.upper() == 'Y':
-        with open(f'{current_path}/{query}.txt', 'w') as f:
-            # 将当前路径写入文本文件
-            f.write(resp.text)
-        # 关闭文本文件
-        f.close()
-        print(f"{current_path} write end!")
-
-    print(resp.text)
 
 
 def get_instance():
@@ -163,7 +123,7 @@ def get_instance():
 
 @app.command()
 def accounts():
-    #result = __fetch(f"select type from certi", get_instance())
+    # result = __fetch(f"select type from certi", get_instance())
     result = sqlite3_util.fetch_all()
     table = Table('TYPE')
     for type in result:

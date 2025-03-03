@@ -1,13 +1,12 @@
-import google.generativeai as genai
+from google import genai
 
 
 # Used to securely store your API key
 
 
 def genai_no_stream(apikey, text):
-    genai.configure(api_key=f"{apikey}", transport='rest')
-    model = genai.GenerativeModel('gemini-pro')
-    chat = model.start_chat()
-
-    response = chat.send_message(text)
+    client = genai.Client(api_key=f"{apikey}")
+    response = client.models.generate_content(
+        model="gemini-2.0-flash", contents=text
+    )
     return response
