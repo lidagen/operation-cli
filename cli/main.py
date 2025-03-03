@@ -106,7 +106,7 @@ def env():
 
 
 @app.command()
-def getAccount():
+def getAcc():
     type = typer.prompt("select certi by type").upper()
     table = Table('TYPE', 'NAME', 'PASSWORD', 'REMARK')
     result = sqlite3_util.query(type)
