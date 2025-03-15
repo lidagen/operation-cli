@@ -3,6 +3,7 @@ import click
 import typer
 from rich import print
 from rich.table import Table
+import threading
 
 from .utils import config
 from .utils import fanyi_baidu_helper
@@ -14,6 +15,9 @@ from .utils.env_enums import Env
 from .utils import gemini_uitl
 from .utils import deepseek
 from .utils import qWen
+from .utils import pushplus
+from .utils import cronUtil
+
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -74,6 +78,18 @@ def ai():
         print(resp)
 
 
+
+@app.command()
+def push(
+     title: str = typer.Option(..., prompt=True),
+     content: str = typer.Option(..., prompt=True)):
+  
+  token = config.read_config().get('pushPlus', None)
+  pushplus.push_plus_notify(token,title,content)
+  result = pushplus.push_plus_notify(token,title,content)
+  print(result)
+
+
 @app.command()
 def env():
     env_mapping = {
@@ -113,7 +129,7 @@ def env():
 
 @app.command()
 def getAcc():
-    type = typer.prompt("select certi by type").upper()
+        
     table = Table('TYPE', 'NAME', 'PASSWORD', 'REMARK')
     result = sqlite3_util.query(type)
     # result = __fetch(f"select * from certi where type = '{type}';", get_instance())
