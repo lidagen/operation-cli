@@ -13,6 +13,7 @@ from .utils.database_helper import DBInstanceMapping
 from .utils.env_enums import Env
 from .utils import gemini_uitl
 from .utils import deepseek
+from .utils import qWen
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -50,7 +51,8 @@ def configure(
 def ai():
     env_mapping = {
         '1': Ai.DEEP_SEEK,
-        '2': Ai.GEMINI
+        '2': Ai.GEMINI,
+        '3': Ai.QIAN_WEN
     }
     for number in env_mapping.keys():
         print(f'[{number}] -> {env_mapping[number].value}')
@@ -66,6 +68,10 @@ def ai():
         gemini_key = config.read_config().get('geminiKey', None)
         resp = gemini_uitl.genai_no_stream(gemini_key, query)
         print(resp.text)
+    elif ai_enum == Ai.QIAN_WEN:
+        qWen_key = config.read_config().get('qWenKey', None)
+        resp = qWen.genai_no_stream(qWen_key, query)
+        print(resp)
 
 
 @app.command()

@@ -7,9 +7,14 @@ def genai_no_stream(apikey, text):
         model="deepseek-chat",
         messages=[
             {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": "Hello"},
+            {"role": "user", "content": text},
         ],
         stream=False
     )
 
     return response.choices[0].message.content
+
+
+if __name__ == '__main__':
+    stream = genai_no_stream("sk-759b1d5b1ee74adcbe570fa4c218ee17", "hello")
+    print(stream)
