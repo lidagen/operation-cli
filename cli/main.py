@@ -126,10 +126,12 @@ def env():
 
 
 @app.command()
-def getAcc():
+def acc(
+    type: str = typer.Option(..., prompt=True)
+):
         
     table = Table('TYPE', 'NAME', 'PASSWORD', 'REMARK')
-    result = sqlite3_util.query(type)
+    result = sqlite3_util.query(type.upper())
     # result = __fetch(f"select * from certi where type = '{type}';", get_instance())
     for certi in result:
         table.add_row(certi[0], certi[1], jwt_utils.decode(certi[2]), certi[3])

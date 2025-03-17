@@ -14,7 +14,7 @@ def push_plus_notify(token:str,title:str,content:str):
         response.raise_for_status()
         result = response.json()
         if result.get("code") == 200:
-            return "success"
+            return title + " push success"
         else:
             return(f"❌ 推送失败: {result.get('msg')}")
     except requests.exceptions.RequestException as e:
