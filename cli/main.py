@@ -10,12 +10,14 @@ from .utils import fanyi_baidu_helper
 from .utils import jwt_utils
 from .utils import sqlite3_util
 from .utils.ai_enums import Ai
+from .utils.tools_enums import Type
 from .utils.database_helper import DBInstanceMapping
 from .utils.env_enums import Env
 from .utils import gemini_uitl
 from .utils import deepseek
 from .utils import qWen
 from .utils import pushplus
+from .utils import my_tools
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
@@ -74,6 +76,27 @@ def ai():
         qWen_key = config.read_config().get('qWenKey', None)
         resp = qWen.genai_no_stream(qWen_key, query)
         print(resp)
+
+@app.command()
+def tools():
+    env_mapping = {
+        '1': Type.ENCODE,
+        '2': Type.DECODE,
+        '3': Type.CRON
+    }
+    for number in env_mapping.keys():
+        print(f'[{number}] -> {env_mapping[number].value}')
+
+    type_index = typer.prompt('Select tool', type=click.Choice(env_mapping.keys()), show_choices=False)
+    type_enum = env_mapping.get(type_index, Type.ENCODE)
+    query = typer.prompt("input query")
+
+    if type_enum == Type.ENCODE:
+        print(my_tools.encode(query))
+    elif type_enum == Type.DECODE :
+        print (my_tools.decode(query))    
+    elif type_enum == Type.CRON:
+        print(my_tools.cron(query))
 
 
 
@@ -161,16 +184,3 @@ def fanyi(
     for re in result:
         print(re)
 
-
-@app.command()
-def decode(
-        val: str = typer.Option(..., prompt=True),
-):
-    print(jwt_utils.decode(val))
-
-
-@app.command()
-def encode(
-        val: str = typer.Option(..., prompt=True),
-):
-    print(jwt_utils.enconde(val))
