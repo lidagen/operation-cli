@@ -10,7 +10,6 @@ def encode(val:str):
     return jwt_utils.enconde(val)
 
 def cron(cron_expression):
-    cron_expression = "*/15 0 1,15 * 1-5"
     try:
         
         parser = cronParser.CronParser(cron_expression)
