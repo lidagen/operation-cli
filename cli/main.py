@@ -83,7 +83,6 @@ def push(
      content: str = typer.Option(..., prompt=True)):
   
   token = config.read_config().get('pushPlus', None)
-  pushplus.push_plus_notify(token,title,content)
   result = pushplus.push_plus_notify(token,title,content)
   print(result)
 
